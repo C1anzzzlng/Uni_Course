@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Xlore </title>
+<style>
+  :root{
+    --ink: #17233F;
+    --ink-soft: #4C5670;
+    --paper: #F1F2F4;
+    --paper-raised: #FFFFFF;
+    --line-stem: #2F6DF6;
+    --line-biz: #FFC93C;
+    --line-health: #1E8A82;
+    --line-arts: #F0563D;
+    --hairline: #D9DCE3;
+    --focus: #17233F;
+    --radius: 4px;
+    --font-display: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
+    --font-body: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
+  }
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--font-body);
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{font-family:var(--font-display); letter-spacing:-0.01em; margin:0;}
+  .mono{font-family:var(--font-mono); letter-spacing:0.02em;}
+  a{color:inherit;}
+  button{font-family:inherit;}
+  :focus-visible{outline:3px solid var(--focus); outline-offset:2px;}
+
+  /* ===== Top nav — REQ025: persistent, always-visible wayfinding ===== */
+  .topbar{
+    position:sticky; top:0; z-index:40;
+    background:var(--ink); color:#fff;
+    padding:0 20px;
+    display:flex; align-items:center; justify-content:space-between;
+    height:60px;
+  }
+  .brand{display:flex; align-items:center; gap:10px; font-family:var(--font-display); font-weight:700; font-size:18px;}
+  .brand .dot{width:10px; height:10px; border-radius:50%; background:var(--line-biz); display:inline-block;}
+  .tabs{display:flex; gap:4px;}
+  .tab-btn{
+    background:transparent; border:none; color:#C8CEDD; cursor:pointer;
+    padding:10px 14px; font-size:13.5px; font-weight:600; border-radius:var(--radius);
+    display:flex; align-items:center; gap:8px;
+  }
+  .tab-btn .stopnum{font-family:var(--font-mono); font-size:11px; background:rgba(255,255,255,.12); padding:1px 6px; border-radius:20px;}
+  .tab-btn:hover{color:#fff; background:rgba(255,255,255,.08);}
+  .tab-btn[aria-selected="true"]{color:var(--ink); background:var(--line-biz);}
+  .tab-btn[aria-selected="true"] .stopnum{background:rgba(23,35,63,.15); color:var(--ink);}
+  .topbar-right{display:flex; align-items:center; gap:12px; font-size:13px; color:#C8CEDD;}
+  .avatar{width:30px; height:30px; border-radius:50%; background:var(--line-arts); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:12px; color:#fff;}
+
+  main{max-width:1180px; margin:0 auto; padding:28px 20px 80px;}
+  .view{display:none;}
+  .view.active{display:block; animation:fade .25s ease;}
+  @keyframes fade{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);}}
+
+  .breadcrumb{font-size:12.5px; color:var(--ink-soft); margin-bottom:14px; display:flex; gap:6px; align-items:center;}
+  .breadcrumb button{background:none;border:none;color:var(--ink-soft);cursor:pointer;padding:0;font-size:12.5px;text-decoration:underline;}
+  .page-head{display:flex; justify-content:space-between; align-items:flex-end; gap:16px; margin-bottom:24px; flex-wrap:wrap;}
+  .page-head h1{font-size:28px;}
+  .page-head p{margin:4px 0 0; color:var(--ink-soft); font-size:14px;}
+
+  /* ===== shared: cards, chips, badges ===== */
+  .card{background:var(--paper-raised); border:1px solid var(--hairline); border-radius:var(--radius); padding:18px;}
+  .chip{
+    display:inline-flex; align-items:center; gap:6px; font-size:12.5px; font-weight:600;
+    padding:5px 10px; border-radius:20px; border:1px solid var(--hairline); background:var(--paper-raised); cursor:pointer;
+  }
+  .chip .swatch{width:8px; height:8px; border-radius:50%;}
+  .chip[aria-pressed="true"]{background:var(--ink); color:#fff; border-color:var(--ink);}
+  .badge{font-family:var(--font-mono); font-size:10.5px; font-weight:600; padding:3px 7px; border-radius:3px; letter-spacing:.03em;}
+  .badge.accred{background:#E7F5F3; color:var(--line-health);}
+  .btn{border:none; border-radius:var(--radius); padding:10px 16px; font-weight:600; font-size:13.5px; cursor:pointer;}
+  .btn-primary{background:var(--ink); color:#fff;}
+  .btn-primary:hover{background:#0E1830;}
+  .btn-ghost{background:transparent; border:1px solid var(--hairline); color:var(--ink);}
+  .btn-ghost:hover{border-color:var(--ink);}
+  .btn:disabled{opacity:.4; cursor:not-allowed;}
+
+  /* =================== DASHBOARD =================== */
+  .dash-grid{display:grid; grid-template-columns:1.6fr 1fr; gap:18px;}
+  @media(max-width:820px){.dash-grid{grid-template-columns:1fr;}}
+  .stat-row{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:18px;}
+  .stat{padding:16px;}
+  .stat .num{font-family:var(--font-display); font-size:26px; font-weight:700;}
+  .stat .label{font-size:12px; color:var(--ink-soft); margin-top:2px;}
+  .list-item{display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--hairline);}
+  .list-item:last-child{border-bottom:none;}
+  .inst-name{font-weight:600; font-size:14.5px;}
+  .inst-sub{font-size:12.5px; color:var(--ink-soft); margin-top:2px;}
+  .section-title{font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft); margin-bottom:10px;}
+  .rec-card{display:flex; gap:12px; padding:12px 0; border-bottom:1px solid var(--hairline);}
+  .rec-card:last-child{border-bottom:none;}
+  .rec-line{width:4px; border-radius:4px; flex-shrink:0;}
+  .rec-why{font-size:12px; color:var(--ink-soft); margin-top:4px;}
+
+  /* =================== EXPLORE / SEARCH =================== */
+  .explore-layout{display:grid; grid-template-columns:240px 1fr; gap:20px; align-items:start;}
+  @media(max-width:900px){.explore-layout{grid-template-columns:1fr;}}
+  .filter-panel{position:sticky; top:76px;}
+  .filter-group{margin-bottom:20px;}
+  .filter-group .section-title{margin-bottom:8px;}
+  .filter-options{display:flex; flex-wrap:wrap; gap:6px;}
+  .range-row{display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:11.5px; color:var(--ink-soft); margin-top:6px;}
+  input[type="range"]{width:100%; accent-color:var(--ink);}
+  .accred-row{display:flex; align-items:center; gap:8px; font-size:13px; padding:5px 0;}
+  .search-bar{display:flex; gap:10px; margin-bottom:16px;}
+  .search-bar input{
+    flex:1; padding:11px 14px; border:1px solid var(--hairline); border-radius:var(--radius); font-size:14px; background:var(--paper-raised);
+  }
+
+  /* abstract "transit map" of specialization lines */
+  .map-wrap{background:var(--paper-raised); border:1px solid var(--hairline); border-radius:var(--radius); margin-bottom:18px; padding:10px;}
+  .map-caption{display:flex; justify-content:space-between; align-items:center; font-size:11.5px; color:var(--ink-soft); padding:6px 6px 10px;}
+  svg#transit{width:100%; height:auto; display:block;}
+  .stop{cursor:pointer;}
+  .stop circle{transition:r .15s ease;}
+  .stop:hover circle{r:8;}
+  .stop text{font-family:var(--font-mono); font-size:9px; fill:var(--ink-soft);}
+
+  .results-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;}
+  .results-count{font-size:13px; color:var(--ink-soft);}
+  .result-row{
+    display:flex; align-items:center; gap:14px; padding:14px; background:var(--paper-raised);
+    border:1px solid var(--hairline); border-radius:var(--radius); margin-bottom:10px;
+  }
+  .result-row input[type=checkbox]{width:17px; height:17px; accent-color:var(--ink); cursor:pointer;}
+  .result-line{width:5px; align-self:stretch; border-radius:4px;}
+  .result-main{flex:1; min-width:0;}
+  .result-tags{display:flex; gap:6px; margin-top:6px; flex-wrap:wrap;}
+  .result-figs{display:flex; gap:18px; align-items:center; font-family:var(--font-mono); font-size:12px; color:var(--ink-soft); white-space:nowrap;}
+  .result-figs strong{color:var(--ink); font-size:13px;}
+  .result-actions{display:flex; flex-direction:column; gap:6px;}
+  .compare-bar{
+    position:fixed; bottom:0; left:0; right:0; background:var(--ink); color:#fff;
+    padding:14px 24px; display:flex; justify-content:space-between; align-items:center;
+    transform:translateY(100%); transition:transform .2s ease; z-index:50;
+  }
+  .compare-bar.show{transform:translateY(0);}
+  .compare-bar .chosen{display:flex; gap:8px; font-size:13px; align-items:center;}
+
+  /* =================== INSTITUTION DETAIL =================== */
+  .detail-hero{display:flex; gap:20px; align-items:flex-start; margin-bottom:22px; flex-wrap:wrap;}
+  .detail-mark{width:64px; height:64px; border-radius:var(--radius); flex-shrink:0; display:flex; align-items:center; justify-content:center; color:#fff; font-family:var(--font-display); font-weight:700; font-size:22px;}
+  .detail-grid{display:grid; grid-template-columns:2fr 1fr; gap:20px;}
+  @media(max-width:820px){.detail-grid{grid-template-columns:1fr;}}
+  .prog-row{padding:12px 0; border-bottom:1px solid var(--hairline);}
+  .prog-row:last-child{border:none;}
+  .prog-title{font-weight:600; font-size:14.5px; display:flex; justify-content:space-between;}
+  .prog-path{font-size:12.5px; color:var(--ink-soft); margin-top:4px;}
+  .fact-row{display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px solid var(--hairline); font-size:13px;}
+  .fact-row:last-child{border:none;}
+  .fact-row .label{color:var(--ink-soft);}
+  .fact-row .val{font-family:var(--font-mono); font-weight:600;}
+
+  /* =================== QUIZ =================== */
+  .quiz-shell{max-width:640px; margin:0 auto;}
+  .progress-track{display:flex; gap:6px; margin-bottom:26px;}
+  .progress-track .seg{flex:1; height:4px; border-radius:4px; background:var(--hairline);}
+  .progress-track .seg.done{background:var(--ink);}
+  .progress-track .seg.now{background:var(--line-biz);}
+  .quiz-step{display:none;}
+  .quiz-step.active{display:block;}
+  .quiz-q{font-size:22px; margin-bottom:6px;}
+  .quiz-help{color:var(--ink-soft); font-size:13.5px; margin-bottom:20px;}
+  .option-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  @media(max-width:520px){.option-grid{grid-template-columns:1fr;}}
+  .option{
+    border:1.5px solid var(--hairline); border-radius:var(--radius); padding:14px; cursor:pointer; background:var(--paper-raised);
+    font-size:13.5px; font-weight:600; text-align:left;
+  }
+  .option[aria-pressed="true"]{border-color:var(--ink); background:#EFF2FF;}
+  .quiz-nav{display:flex; justify-content:space-between; margin-top:26px;}
+  .quiz-result .rec-card{align-items:center;}
+
+  /* =================== MODAL: comparison "departure board" =================== */
+  .modal-scrim{position:fixed; inset:0; background:rgba(23,35,63,.5); display:none; align-items:center; justify-content:center; z-index:60; padding:20px;}
+  .modal-scrim.show{display:flex;}
+  .modal{background:var(--ink); color:#fff; width:100%; max-width:920px; max-height:85vh; overflow:auto; border-radius:var(--radius);}
+  .modal-head{display:flex; justify-content:space-between; align-items:center; padding:18px 22px; border-bottom:1px solid rgba(255,255,255,.15); position:sticky; top:0; background:var(--ink);}
+  .modal-head h2{font-size:17px; font-family:var(--font-mono); letter-spacing:.04em;}
+  .modal-close{background:none; border:1px solid rgba(255,255,255,.3); color:#fff; border-radius:var(--radius); padding:6px 10px; cursor:pointer; font-size:12px;}
+  table.board{width:100%; border-collapse:collapse; font-family:var(--font-mono); font-size:12.5px;}
+  table.board th, table.board td{padding:12px 16px; text-align:left; border-bottom:1px solid rgba(255,255,255,.12); vertical-align:top;}
+  table.board th{color:var(--line-biz); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.05em; background:rgba(255,255,255,.03);}
+  table.board td.rowlabel{color:#9AA4BE; white-space:nowrap;}
+  .visually-hidden{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0);}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand"><span class="dot"></span> Route <span style="font-weight:400;color:#9AA4BE;font-size:12px;">/ Metro Manila</span></div>
+  <nav class="tabs" role="tablist" aria-label="Primary">
+    <button class="tab-btn" role="tab" aria-selected="true" data-view="dashboard"><span class="stopnum">01</span>Dashboard</button>
+    <button class="tab-btn" role="tab" aria-selected="false" data-view="explore"><span class="stopnum">02</span>Explore</button>
+    <button class="tab-btn" role="tab" aria-selected="false" data-view="detail"><span class="stopnum">03</span>Institution</button>
+    <button class="tab-btn" role="tab" aria-selected="false" data-view="quiz"><span class="stopnum">04</span>Find my fit</button>
+  </nav>
+  <div class="topbar-right">
+    <span>Hi, Jamie</span>
+    <span class="avatar">J</span>
+  </div>
+</header>
+
+<main>
+
+  <!-- ============ DASHBOARD ============ -->
+  <section class="view active" id="view-dashboard">
+    <div class="page-head">
+      <div><h1>Welcome back, Jamie</h1><p>Your saved options, recommendations, and search activity in one place.</p></div>
+      <button class="btn btn-primary" data-goto="quiz">Retake recommendation quiz</button>
+    </div>
+
+    <div class="stat-row">
+      <div class="card stat"><div class="num">6</div><div class="label">Saved programs</div></div>
+      <div class="card stat"><div class="num">3</div><div class="label">Institutions compared</div></div>
+      <div class="card stat"><div class="num">92%</div><div class="label">Quiz match confidence</div></div>
+    </div>
+
+    <div class="dash-grid">
+      <div class="card">
+        <div class="section-title">Saved programs &amp; institutions</div>
+        <div class="list-item">
+          <div><div class="inst-name">BS Computer Science</div><div class="inst-sub">Manila Institute of Technology · Sampaloc, Manila</div></div>
+          <button class="btn-ghost btn" data-goto="detail">View</button>
+        </div>
+        <div class="list-item">
+          <div><div class="inst-name">BS Nursing</div><div class="inst-sub">Del Pilar College of Health Sciences · Mandaluyong</div></div>
+          <button class="btn-ghost btn" data-goto="detail">View</button>
+        </div>
+        <div class="list-item">
+          <div><div class="inst-name">BS Business Administration</div><div class="inst-sub">Mandaluyong School of Business · Mandaluyong</div></div>
+          <button class="btn-ghost btn" data-goto="detail">View</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Recommended for you</div>
+        <div class="rec-card"><span class="rec-line" style="background:var(--line-stem)"></span>
+          <div><div class="inst-name">BS Information Technology</div><div class="rec-why">Matches your interest in logic-based problem solving from your quiz.</div></div>
+        </div>
+        <div class="rec-card"><span class="rec-line" style="background:var(--line-health)"></span>
+          <div><div class="inst-name">BS Psychology</div><div class="rec-why">Based on programs you viewed longer than 2 minutes this week.</div></div>
+        </div>
+        <div class="rec-card"><span class="rec-line" style="background:var(--line-arts)"></span>
+          <div><div class="inst-name">BA Communication</div><div class="rec-why">Popular among students with a similar saved-program pattern.</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ EXPLORE / SEARCH ============ -->
+  <section class="view" id="view-explore">
+    <div class="page-head">
+      <div><h1>Explore institutions</h1><p>Filter by line, distance, or accreditation — results update instantly.</p></div>
+    </div>
+
+    <div class="search-bar">
+      <input type="text" placeholder="Search programs, institutions, or keywords (e.g. “nursing”, “BS IT”)" aria-label="Search">
+      <button class="btn btn-primary">Search</button>
+    </div>
+
+    <div class="explore-layout">
+      <!-- Filter sidebar: REQ015 -->
+      <aside class="filter-panel card" aria-label="Filters">
+        <div class="filter-group">
+          <div class="section-title">Specialization line</div>
+          <div class="filter-options">
+            <button class="chip" aria-pressed="true" data-line="stem"><span class="swatch" style="background:var(--line-stem)"></span>STEM</button>
+            <button class="chip" aria-pressed="true" data-line="biz"><span class="swatch" style="background:var(--line-biz)"></span>Business</button>
+            <button class="chip" aria-pressed="true" data-line="health"><span class="swatch" style="background:var(--line-health)"></span>Health</button>
+            <button class="chip" aria-pressed="true" data-line="arts"><span class="swatch" style="background:var(--line-arts)"></span>Arts &amp; Comm</button>
+          </div>
+        </div>
+        <div class="filter-group">
+          <div class="section-title">Tuition per semester</div>
+          <input type="range" min="0" max="100" value="70" id="tuitionRange">
+          <div class="range-row"><span>₱10k</span><span id="tuitionVal">≤ ₱80k</span><span>₱150k+</span></div>
+        </div>
+        <div class="filter-group">
+          <div class="section-title">Accreditation</div>
+          <label class="accred-row"><input type="checkbox" checked> CHED-recognized</label>
+          <label class="accred-row"><input type="checkbox" checked> PACUCOA accredited</label>
+          <label class="accred-row"><input type="checkbox"> ISO-certified campus</label>
+        </div>
+        <button class="btn btn-ghost" style="width:100%" id="resetFilters">Reset filters</button>
+      </aside>
+
+      <div>
+        <!-- Map integration placeholder -->
+        <div class="map-wrap">
+          <svg id="transit" viewBox="0 0 640 190" role="img" aria-label="Map of institutions grouped by specialization line across Metro Manila">
+            <line x1="30" y1="40" x2="600" y2="40" stroke="var(--line-stem)" stroke-width="4"/>
+            <line x1="60" y1="90" x2="580" y2="90" stroke="var(--line-biz)" stroke-width="4"/>
+            <line x1="30" y1="140" x2="600" y2="140" stroke="var(--line-health)" stroke-width="4"/>
+            <g class="stop" data-name="Manila Institute of Technology">
+              <circle cx="120" cy="40" r="6" fill="var(--line-stem)"/><text x="120" y="26" text-anchor="middle">MIT</text>
+            </g>
+            <g class="stop" data-name="Quezon City Polytechnic University">
+              <circle cx="330" cy="40" r="6" fill="var(--line-stem)"/><text x="330" y="26" text-anchor="middle">QCPU</text>
+            </g>
+            <g class="stop" data-name="Mandaluyong School of Business">
+              <circle cx="220" cy="90" r="6" fill="var(--line-biz)"/><text x="220" y="112" text-anchor="middle">MSB</text>
+            </g>
+            <g class="stop" data-name="Pasig Business College">
+              <circle cx="470" cy="90" r="6" fill="var(--line-biz)"/><text x="470" y="112" text-anchor="middle">PBC</text>
+            </g>
+            <g class="stop" data-name="Del Pilar College of Health Sciences">
+              <circle cx="160" cy="140" r="6" fill="var(--line-health)"/><text x="160" y="160" text-anchor="middle">DPCHS</text>
+            </g>
+            <g class="stop" data-name="Marikina Institute of Allied Health">
+              <circle cx="500" cy="140" r="6" fill="var(--line-health)"/><text x="500" y="160" text-anchor="middle">MIAH</text>
+            </g>
+          </svg>
+          <div class="map-caption"><span>Illustrative route map — pins cluster institutions by specialization, not literal geography</span><span>6 institutions shown</span></div>
+        </div>
+
+        <div class="results-head">
+          <div class="results-count"><strong id="resCount">6</strong> institutions match your filters</div>
+          <label style="font-size:12.5px; color:var(--ink-soft)">Sort by <select style="margin-left:4px;"><option>Best match</option><option>Tuition: low to high</option><option>Distance</option></select></label>
+        </div>
+
+        <div id="resultsList"></div>
+      </div>
+    </div>
+
+    <div class="compare-bar" id="compareBar">
+      <div class="chosen"><span id="chosenCount">0</span> selected for comparison</div>
+      <div style="display:flex; gap:10px;">
+        <button class="btn btn-ghost" style="color:#fff;border-color:rgba(255,255,255,.35)" id="clearCompare">Clear</button>
+        <button class="btn btn-primary" style="background:var(--line-biz); color:var(--ink)" id="openCompare" disabled>Compare selected</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ INSTITUTION DETAIL ============ -->
+  <section class="view" id="view-detail">
+    <div class="breadcrumb">
+      <button data-goto="dashboard">Dashboard</button> / <button data-goto="explore">Explore</button> / <span>Manila Institute of Technology</span>
+    </div>
+    <div class="detail-hero">
+      <div class="detail-mark" style="background:var(--line-stem)">MIT</div>
+      <div style="flex:1; min-width:220px;">
+        <h1>Manila Institute of Technology</h1>
+        <p style="color:var(--ink-soft); margin:4px 0 8px; font-size:14px;">Sampaloc, Manila · STEM specialization line</p>
+        <span class="badge accred">CHED RECOGNIZED</span> <span class="badge accred">PACUCOA LEVEL III</span>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-ghost">♡ Save</button>
+        <button class="btn btn-primary">Add to comparison</button>
+      </div>
+    </div>
+
+    <div class="detail-grid">
+      <div class="card">
+        <div class="section-title">Program specializations</div>
+        <div class="prog-row">
+          <div class="prog-title">BS Computer Science <span class="mono" style="font-size:11.5px;color:var(--ink-soft)">₱68,000/sem</span></div>
+          <div class="prog-path">Careers: Software Engineer, Data Analyst, Systems Developer</div>
+        </div>
+        <div class="prog-row">
+          <div class="prog-title">BS Information Technology <span class="mono" style="font-size:11.5px;color:var(--ink-soft)">₱61,500/sem</span></div>
+          <div class="prog-path">Careers: Network Administrator, IT Consultant, Web Developer</div>
+        </div>
+        <div class="prog-row">
+          <div class="prog-title">BS Civil Engineering <span class="mono" style="font-size:11.5px;color:var(--ink-soft)">₱72,000/sem</span></div>
+          <div class="prog-path">Careers: Structural Engineer, Site Supervisor, Urban Planner</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Institution facts</div>
+        <div class="fact-row"><span class="label">Location</span><span class="val">Sampaloc, Manila</span></div>
+        <div class="fact-row"><span class="label">Tuition range</span><span class="val">₱58k – ₱75k</span></div>
+        <div class="fact-row"><span class="label">Accreditation</span><span class="val">CHED · PACUCOA III</span></div>
+        <div class="fact-row"><span class="label">Campus type</span><span class="val">Urban, single campus</span></div>
+        <div class="fact-row"><span class="label">Est. review time</span><span class="val">&lt; 5 sec</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ RECOMMENDATION QUIZ ============ -->
+  <section class="view" id="view-quiz">
+    <div class="quiz-shell">
+      <div class="page-head" style="margin-bottom:14px;">
+        <div><h1>Find your fit</h1><p>4 quick questions — most students finish in under a minute.</p></div>
+      </div>
+      <div class="progress-track" id="progressTrack"></div>
+
+      <div class="quiz-step active" data-step="0">
+        <div class="quiz-q">Which subjects energize you most?</div>
+        <div class="quiz-help">Pick as many as apply.</div>
+        <div class="option-grid">
+          <button class="option" aria-pressed="false">Math &amp; problem solving</button>
+          <button class="option" aria-pressed="false">Biology &amp; health</button>
+          <button class="option" aria-pressed="false">Business &amp; economics</button>
+          <button class="option" aria-pressed="false">Writing &amp; media</button>
+        </div>
+      </div>
+      <div class="quiz-step" data-step="1">
+        <div class="quiz-q">How do you like to solve problems?</div>
+        <div class="quiz-help">Choose one.</div>
+        <div class="option-grid">
+          <button class="option" aria-pressed="false">Step-by-step logic</button>
+          <button class="option" aria-pressed="false">Working with people</button>
+          <button class="option" aria-pressed="false">Hands-on experimenting</button>
+          <button class="option" aria-pressed="false">Creative storytelling</button>
+        </div>
+      </div>
+      <div class="quiz-step" data-step="2">
+        <div class="quiz-q">What's your ideal work environment?</div>
+        <div class="quiz-help">Choose one.</div>
+        <div class="option-grid">
+          <button class="option" aria-pressed="false">Office / lab</button>
+          <button class="option" aria-pressed="false">Hospital / clinic</button>
+          <button class="option" aria-pressed="false">Studio / field</button>
+          <button class="option" aria-pressed="false">Anywhere, remote-friendly</button>
+        </div>
+      </div>
+      <div class="quiz-step" data-step="3">
+        <div class="quiz-q">Tuition comfort per semester?</div>
+        <div class="quiz-help">Choose one — you can adjust later in filters.</div>
+        <div class="option-grid">
+          <button class="option" aria-pressed="false">Under ₱40k</button>
+          <button class="option" aria-pressed="false">₱40k – ₱80k</button>
+          <button class="option" aria-pressed="false">₱80k – ₱120k</button>
+          <button class="option" aria-pressed="false">No strict limit</button>
+        </div>
+      </div>
+      <div class="quiz-step" data-step="4">
+        <div class="quiz-q">Your top match</div>
+        <div class="quiz-help">Generated instantly from your answers — refine anytime by retaking.</div>
+        <div class="card quiz-result">
+          <div class="rec-card"><span class="rec-line" style="background:var(--line-stem)"></span>
+            <div><div class="inst-name">BS Computer Science — Manila Institute of Technology</div><div class="rec-why">Matches: logic-based problem solving, lab environment, ₱40k–₱80k range.</div></div>
+          </div>
+        </div>
+        <button class="btn btn-primary" style="margin-top:14px" data-goto="detail">View full details</button>
+      </div>
+
+      <div class="quiz-nav">
+        <button class="btn btn-ghost" id="quizBack" disabled>Back</button>
+        <button class="btn btn-primary" id="quizNext">Next</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============ COMPARISON MODAL ============ -->
+<div class="modal-scrim" id="modalScrim">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-head">
+      <h2 id="modalTitle">// COMPARISON BOARD</h2>
+      <button class="modal-close" id="modalClose">Close ✕</button>
+    </div>
+    <table class="board" id="boardTable"></table>
+  </div>
+</div>
+
+<script>
+// ---------- sample data ----------
+const institutions = [
+  {id:'mit', name:'Manila Institute of Technology', loc:'Sampaloc, Manila', line:'stem', tuition:68000, accred:'CHED · PACUCOA III', programs:['BS Computer Science','BS Information Technology','BS Civil Engineering']},
+  {id:'qcpu', name:'Quezon City Polytechnic University', loc:'Quezon City', line:'stem', tuition:42000, accred:'CHED · State University', programs:['BS Electrical Engineering','BS Computer Science']},
+  {id:'msb', name:'Mandaluyong School of Business', loc:'Mandaluyong', line:'biz', tuition:55000, accred:'CHED · PACUCOA II', programs:['BS Business Administration','BS Accountancy']},
+  {id:'pbc', name:'Pasig Business College', loc:'Pasig', line:'biz', tuition:39000, accred:'CHED Recognized', programs:['BS Marketing Management','BS Entrepreneurship']},
+  {id:'dpchs', name:'Del Pilar College of Health Sciences', loc:'Mandaluyong', line:'health', tuition:74000, accred:'CHED · PRC Board Prep', programs:['BS Nursing','BS Medical Technology']},
+  {id:'miah', name:'Marikina Institute of Allied Health', loc:'Marikina', line:'health', tuition:58000, accred:'CHED Recognized', programs:['BS Physical Therapy','BS Nursing']},
+];
+const lineColor = {stem:'var(--line-stem)', biz:'var(--line-biz)', health:'var(--line-health)', arts:'var(--line-arts)'};
+const lineLabel = {stem:'STEM', biz:'Business', health:'Health', arts:'Arts & Comm'};
+let selected = new Set();
+let activeLines = new Set(['stem','biz','health','arts']);
+
+function renderResults(){
+  const list = document.getElementById('resultsList');
+  const visible = institutions.filter(i => activeLines.has(i.line));
+  list.innerHTML = visible.map(i => `
+    <div class="result-row">
+      <input type="checkbox" ${selected.has(i.id) ? 'checked':''} data-id="${i.id}" aria-label="Select ${i.name} for comparison">
+      <span class="result-line" style="background:${lineColor[i.line]}"></span>
+      <div class="result-main">
+        <div class="inst-name">${i.name}</div>
+        <div class="inst-sub">${i.loc}</div>
+        <div class="result-tags"><span class="badge accred">${i.accred}</span></div>
+      </div>
+      <div class="result-figs"><span>Tuition<br><strong>₱${i.tuition.toLocaleString()}</strong></span></div>
+      <div class="result-actions">
+        <button class="btn btn-ghost" data-goto="detail">View</button>
+      </div>
+    </div>
+  `).join('');
+  document.getElementById('resCount').textContent = visible.length;
+
+  list.querySelectorAll('input[type=checkbox]').forEach(cb=>{
+    cb.addEventListener('change', e=>{
+      const id = e.target.dataset.id;
+      if(e.target.checked){
+        if(selected.size >= 3){ e.target.checked = false; alert('Compare up to 3 institutions at a time.'); return; }
+        selected.add(id);
+      } else selected.delete(id);
+      updateCompareBar();
+    });
+  });
+}
+
+function updateCompareBar(){
+  document.getElementById('chosenCount').textContent = selected.size;
+  document.getElementById('compareBar').classList.toggle('show', selected.size > 0);
+  document.getElementById('openCompare').disabled = selected.size < 2;
+}
+
+document.getElementById('clearCompare').addEventListener('click', ()=>{
+  selected.clear(); renderResults(); updateCompareBar();
+});
+
+document.getElementById('openCompare').addEventListener('click', ()=>{
+  const chosen = institutions.filter(i => selected.has(i.id));
+  const table = document.getElementById('boardTable');
+  const rows = [
+    ['LOCATION', i=>i.loc],
+    ['LINE', i=>lineLabel[i.line]],
+    ['TUITION/SEM', i=>'₱'+i.tuition.toLocaleString()],
+    ['ACCREDITATION', i=>i.accred],
+    ['PROGRAMS', i=>i.programs.join(', ')],
+  ];
+  table.innerHTML = `
+    <tr><th>Criteria</th>${chosen.map(i=>`<th>${i.name}</th>`).join('')}</tr>
+    ${rows.map(([label, fn]) => `<tr><td class="rowlabel">${label}</td>${chosen.map(i=>`<td>${fn(i)}</td>`).join('')}</tr>`).join('')}
+  `;
+  document.getElementById('modalScrim').classList.add('show');
+});
+document.getElementById('modalClose').addEventListener('click', ()=> document.getElementById('modalScrim').classList.remove('show'));
+document.getElementById('modalScrim').addEventListener('click', e=>{ if(e.target.id==='modalScrim') e.target.classList.remove('show'); });
+
+// ---------- filter chips ----------
+document.querySelectorAll('.chip[data-line]').forEach(chip=>{
+  chip.addEventListener('click', ()=>{
+    const on = chip.getAttribute('aria-pressed') === 'true';
+    chip.setAttribute('aria-pressed', String(!on));
+    if(on) activeLines.delete(chip.dataset.line); else activeLines.add(chip.dataset.line);
+    renderResults();
+  });
+});
+document.getElementById('tuitionRange').addEventListener('input', e=>{
+  const val = 10000 + (e.target.value/100)*140000;
+  document.getElementById('tuitionVal').textContent = '≤ ₱' + Math.round(val/1000) + 'k';
+});
+document.getElementById('resetFilters').addEventListener('click', ()=>{
+  document.querySelectorAll('.chip[data-line]').forEach(c=>c.setAttribute('aria-pressed','true'));
+  activeLines = new Set(['stem','biz','health','arts']);
+  document.getElementById('tuitionRange').value = 70;
+  document.getElementById('tuitionVal').textContent = '≤ ₱80k';
+  renderResults();
+});
+
+// map pin -> scroll to matching result (simple affordance)
+document.querySelectorAll('.stop').forEach(stop=>{
+  stop.addEventListener('click', ()=>{
+    const name = stop.dataset.name;
+    const match = institutions.find(i=>i.name===name);
+    if(match){ activeLines = new Set([match.line]);
+      document.querySelectorAll('.chip[data-line]').forEach(c=>c.setAttribute('aria-pressed', String(c.dataset.line===match.line)));
+      renderResults();
+    }
+  });
+});
+
+// ---------- nav / view switching ----------
+function showView(name){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b=>b.setAttribute('aria-selected', String(b.dataset.view===name)));
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+document.querySelectorAll('.tab-btn').forEach(b=> b.addEventListener('click', ()=> showView(b.dataset.view)));
+document.querySelectorAll('[data-goto]').forEach(b=> b.addEventListener('click', ()=> showView(b.dataset.goto)));
+
+// ---------- quiz ----------
+const totalSteps = 5; // 4 questions + 1 result
+let quizStep = 0;
+const track = document.getElementById('progressTrack');
+track.innerHTML = Array.from({length:totalSteps-1}).map(()=>'<div class="seg"></div>').join('');
+
+function renderQuiz(){
+  document.querySelectorAll('.quiz-step').forEach(s=> s.classList.toggle('active', Number(s.dataset.step)===quizStep));
+  track.querySelectorAll('.seg').forEach((seg,i)=>{
+    seg.classList.toggle('done', i < quizStep);
+    seg.classList.toggle('now', i === quizStep);
+  });
+  document.getElementById('quizBack').disabled = quizStep === 0;
+  const nextBtn = document.getElementById('quizNext');
+  if(quizStep === totalSteps-1){ nextBtn.textContent='Start over'; }
+  else if(quizStep === totalSteps-2){ nextBtn.textContent='See my match'; }
+  else{ nextBtn.textContent='Next'; }
+}
+document.querySelectorAll('.quiz-step .option').forEach(opt=>{
+  opt.addEventListener('click', ()=>{
+    const group = opt.closest('.option-grid');
+    // single-select per question for steps 1-3, multi-select for step 0
+    const multi = opt.closest('.quiz-step').dataset.step === '0';
+    if(!multi) group.querySelectorAll('.option').forEach(o=>o.setAttribute('aria-pressed','false'));
+    opt.setAttribute('aria-pressed', String(opt.getAttribute('aria-pressed') !== 'true'));
+  });
+});
+document.getElementById('quizNext').addEventListener('click', ()=>{
+  if(quizStep === totalSteps-1){ quizStep = 0; }
+  else quizStep++;
+  renderQuiz();
+});
+document.getElementById('quizBack').addEventListener('click', ()=>{
+  if(quizStep>0) quizStep--; renderQuiz();
+});
+
+// ---------- init ----------
+renderResults();
+renderQuiz();
+</script>
+</body>
+</html>
