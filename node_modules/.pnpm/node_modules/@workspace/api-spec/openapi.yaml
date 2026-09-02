@@ -1,0 +1,618 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: Xlore U API - Intelligent school-matching platform for Taguig City senior high school students
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: schools
+    description: School directory operations
+  - name: programs
+    description: Program listing operations
+  - name: saved
+    description: Saved schools and programs
+  - name: assessment
+    description: Self assessment and recommendations
+  - name: users
+    description: User profile operations
+  - name: admin
+    description: Admin data management
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /schools:
+    get:
+      operationId: listSchools
+      tags: [schools]
+      summary: List all schools
+      parameters:
+        - name: search
+          in: query
+          schema: { type: string }
+        - name: type
+          in: query
+          schema: { type: string }
+        - name: tuitionMin
+          in: query
+          schema: { type: integer }
+        - name: tuitionMax
+          in: query
+          schema: { type: integer }
+        - name: strand
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: List of schools
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/School"
+    post:
+      operationId: createSchool
+      tags: [admin]
+      summary: Create a school (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SchoolInput"
+      responses:
+        "201":
+          description: Created school
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/School"
+
+  /schools/{id}:
+    get:
+      operationId: getSchool
+      tags: [schools]
+      summary: Get school details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: School details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SchoolDetail"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateSchool
+      tags: [admin]
+      summary: Update a school (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SchoolUpdate"
+      responses:
+        "200":
+          description: Updated school
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/School"
+    delete:
+      operationId: deleteSchool
+      tags: [admin]
+      summary: Delete a school (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "204":
+          description: Deleted
+
+  /programs:
+    get:
+      operationId: listPrograms
+      tags: [programs]
+      summary: List all programs
+      parameters:
+        - name: search
+          in: query
+          schema: { type: string }
+        - name: category
+          in: query
+          schema: { type: string }
+        - name: schoolId
+          in: query
+          schema: { type: integer }
+        - name: strand
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: List of programs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Program"
+    post:
+      operationId: createProgram
+      tags: [admin]
+      summary: Create a program (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProgramInput"
+      responses:
+        "201":
+          description: Created program
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Program"
+
+  /programs/{id}:
+    get:
+      operationId: getProgram
+      tags: [programs]
+      summary: Get program details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Program details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Program"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateProgram
+      tags: [admin]
+      summary: Update a program (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProgramUpdate"
+      responses:
+        "200":
+          description: Updated program
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Program"
+    delete:
+      operationId: deleteProgram
+      tags: [admin]
+      summary: Delete a program (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "204":
+          description: Deleted
+
+  /saved/schools:
+    get:
+      operationId: getSavedSchools
+      tags: [saved]
+      summary: Get user's saved schools
+      responses:
+        "200":
+          description: Saved schools
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/School"
+    post:
+      operationId: saveSchool
+      tags: [saved]
+      summary: Save a school
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SaveSchoolInput"
+      responses:
+        "201":
+          description: Saved
+
+  /saved/schools/{schoolId}:
+    delete:
+      operationId: unsaveSchool
+      tags: [saved]
+      summary: Remove saved school
+      parameters:
+        - name: schoolId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "204":
+          description: Removed
+
+  /saved/programs:
+    get:
+      operationId: getSavedPrograms
+      tags: [saved]
+      summary: Get user's saved programs
+      responses:
+        "200":
+          description: Saved programs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Program"
+    post:
+      operationId: saveProgram
+      tags: [saved]
+      summary: Save a program
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SaveProgramInput"
+      responses:
+        "201":
+          description: Saved
+
+  /saved/programs/{programId}:
+    delete:
+      operationId: unsaveProgram
+      tags: [saved]
+      summary: Remove saved program
+      parameters:
+        - name: programId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "204":
+          description: Removed
+
+  /assessment:
+    post:
+      operationId: submitAssessment
+      tags: [assessment]
+      summary: Submit self-assessment answers
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssessmentInput"
+      responses:
+        "200":
+          description: Recommendations
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssessmentResult"
+    get:
+      operationId: getAssessmentResult
+      tags: [assessment]
+      summary: Get latest assessment result for user
+      responses:
+        "200":
+          description: Assessment result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssessmentResult"
+        "404":
+          description: No assessment yet
+
+  /admin/refresh-schools:
+    post:
+      operationId: refreshSchools
+      tags: [admin]
+      summary: Refresh school information from official websites
+      responses:
+        "200":
+          description: Refresh summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RefreshSummary"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Admin access required
+
+  /stats:
+    get:
+      operationId: getStats
+      tags: [schools]
+      summary: Get platform stats
+      responses:
+        "200":
+          description: Platform statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Stats"
+
+  /users/me:
+    get:
+      operationId: getMe
+      tags: [users]
+      summary: Get current user profile
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+    patch:
+      operationId: updateMe
+      tags: [users]
+      summary: Update user profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserProfileUpdate"
+      responses:
+        "200":
+          description: Updated profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    School:
+      type: object
+      required: [id, name, type, address, tuitionMin, tuitionMax, strands, logoUrl, applicationUrl, latitude, longitude]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        type: { type: string, enum: [Public, Private] }
+        address: { type: string }
+        description: { type: ["string", "null"] }
+        tuitionMin: { type: integer }
+        tuitionMax: { type: integer }
+        strands:
+          type: array
+          items: { type: string }
+        logoUrl: { type: ["string", "null"] }
+        applicationUrl: { type: ["string", "null"] }
+        latitude: { type: ["number", "null"] }
+        longitude: { type: ["number", "null"] }
+        isSaved: { type: boolean }
+
+    SchoolDetail:
+      allOf:
+        - $ref: "#/components/schemas/School"
+        - type: object
+          properties:
+            programs:
+              type: array
+              items:
+                $ref: "#/components/schemas/Program"
+
+    SchoolInput:
+      type: object
+      required: [name, type, address, tuitionMin, tuitionMax, strands]
+      properties:
+        name: { type: string }
+        type: { type: string, enum: [Public, Private] }
+        address: { type: string }
+        description: { type: string }
+        tuitionMin: { type: integer }
+        tuitionMax: { type: integer }
+        strands:
+          type: array
+          items: { type: string }
+        logoUrl: { type: string }
+        applicationUrl: { type: string }
+        latitude: { type: number }
+        longitude: { type: number }
+
+    SchoolUpdate:
+      type: object
+      properties:
+        name: { type: string }
+        type: { type: string, enum: [Public, Private] }
+        address: { type: string }
+        description: { type: string }
+        tuitionMin: { type: integer }
+        tuitionMax: { type: integer }
+        strands:
+          type: array
+          items: { type: string }
+        logoUrl: { type: string }
+        applicationUrl: { type: string }
+        latitude: { type: number }
+        longitude: { type: number }
+
+    Program:
+      type: object
+      required: [id, name, category, schoolId, schoolName, description, requirements, careerPaths, strand]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        category: { type: string }
+        schoolId: { type: integer }
+        schoolName: { type: string }
+        description: { type: string }
+        requirements:
+          type: array
+          items: { type: string }
+        careerPaths:
+          type: array
+          items: { type: string }
+        strand: { type: string }
+        isSaved: { type: boolean }
+
+    ProgramInput:
+      type: object
+      required: [name, category, schoolId, description, requirements, careerPaths, strand]
+      properties:
+        name: { type: string }
+        category: { type: string }
+        schoolId: { type: integer }
+        description: { type: string }
+        requirements:
+          type: array
+          items: { type: string }
+        careerPaths:
+          type: array
+          items: { type: string }
+        strand: { type: string }
+
+    ProgramUpdate:
+      type: object
+      properties:
+        name: { type: string }
+        category: { type: string }
+        schoolId: { type: integer }
+        description: { type: string }
+        requirements:
+          type: array
+          items: { type: string }
+        careerPaths:
+          type: array
+          items: { type: string }
+        strand: { type: string }
+
+    SaveSchoolInput:
+      type: object
+      required: [schoolId]
+      properties:
+        schoolId: { type: integer }
+
+    SaveProgramInput:
+      type: object
+      required: [programId]
+      properties:
+        programId: { type: integer }
+
+    AssessmentInput:
+      type: object
+      required: [answers]
+      properties:
+        answers:
+          type: array
+          items:
+            $ref: "#/components/schemas/AssessmentAnswer"
+
+    AssessmentAnswer:
+      type: object
+      required: [questionId, answer]
+      properties:
+        questionId: { type: string }
+        answer: { type: string }
+
+    AssessmentResult:
+      type: object
+      required: [id, recommendedPrograms, matchedSchools, completedAt]
+      properties:
+        id: { type: integer }
+        recommendedPrograms:
+          type: array
+          items: { type: string }
+        matchedSchools:
+          type: array
+          items:
+            $ref: "#/components/schemas/School"
+        completedAt: { type: string }
+
+    Stats:
+      type: object
+      required: [totalSchools, totalPrograms, publicSchools, privateSchools]
+      properties:
+        totalSchools: { type: integer }
+        totalPrograms: { type: integer }
+        publicSchools: { type: integer }
+        privateSchools: { type: integer }
+
+    RefreshSummary:
+      type: object
+      required: [checked, updated, programsAdded, failed, failures]
+      properties:
+        checked: { type: integer }
+        updated: { type: integer }
+        programsAdded: { type: integer }
+        failed: { type: integer }
+        failures:
+          type: array
+          items: { type: string }
+
+    UserProfile:
+      type: object
+      required: [id, clerkId, name, email, role]
+      properties:
+        id: { type: integer }
+        clerkId: { type: string }
+        name: { type: string }
+        email: { type: string }
+        role: { type: string, enum: [user, admin] }
+
+    UserProfileUpdate:
+      type: object
+      properties:
+        name: { type: string }

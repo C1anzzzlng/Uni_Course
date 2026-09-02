@@ -1,0 +1,95 @@
+remake this website
+features:
+User Account Management
+
+REQ001. Users shall be able to register created accounts
+
+REQ002. Users shall be able to login using their created credentials
+
+REQ003. Users shall be able to update their credentials.
+
+Program and Institution Exploration
+
+REQ004. Users shall be able to browse the list of available college programs and institutions.
+REQ005. The system shall display program description, requirements, and possible career paths.
+REQ006. Users shall be able to search for programs and institutions based on keywords
+
+Institution Information
+
+REQ007. The system shall display tertiary institutions and their program offerings.
+
+REQ008. Users shall be able to view institutional details such as location, program offerings, and tuition fees.
+Recommendation System
+
+REQ009. The system shall collect user interests, skills, and preferences.
+
+REQ010. The systems shall be able to produce program and institution recommendations based on collected information
+REQ011. Users shall be able to view program and institution recommendations.
+
+Management of Preferences
+
+REQ012. Users shall be able to save their preferred programs and institutions
+
+REQ013. Users will be capable of removing saved programs and institutions
+
+REQ014. The system shall display saved programs and institutions in the user dashboard.
+
+Filtration System
+
+REQ015. Users shall be able to filter programs and institutions based on specializations and tuition.
+
+REQ016. The system shall display filtered results based on selected criteria.
+
+B.Non-Functional Requirements Operational Requirements
+REQ017. The system shall operate on web applications. REQ018. The system shall require internet connectivity. REQ019. The system shall store data in a centralized database. Performance Requirements
+REQ020. The system shall display search results in less than (3) seconds.
+
+REQ021. The system shall produce program and institution recommendations in real time.
+Security Requirements
+
+REQ022. The system shall require authentication before accessing user accounts.
+
+REQ023. The system shall protect user data from unauthorized access.
+
+REQ024. The system shall encrypt user passwords.
+
+Usability Requirements
+
+REQ025. The system shall provide a clear and intuitive navigation structure for users.
+
+REQ026. The system shall allow users to complete program and institution search and recommendation with minimal steps.
+Cultural and Language Requirements
+
+REQ027. The system shall utilize English as the primary language.
+
+here is the available schools:
+University of Makati
+Taguig City University
+Enderun Colleges
+Treston International College
+Technological University of the Philippines - Taguig
+Polytechnic University of the Philippines (PUP) - Taguig
+MINT College (Meridian International College)
+Global City Innovative College
+The Fisher Valley College
+Gracel Christian College Foundation
+De La Salle University - Rufino Campus
+University of the Philippines Professional Schools
+STI Global City
+St. Chamuel College & Institute of Technology
+AMA Computer Learning Center
+Open Source College
+Philippine School of Interior Design
+St. Therese School of Technology of Taguig, Inc.
+Arandia College Taguig, Inc.
+Asian Christian Technological School and Colleges, Inc.
+Asia Source College of Arts and Technology, Inc.
+Carenet Healthcare Institute.
+
+make schools information, address, and application links accurate 
+add a clear images of each schools logo
+add the google map integration where user can see where all the available schools in taguig city.
+add the forget password and otp
+add saved schools and programs
+make the database editable for data adjustments
+
