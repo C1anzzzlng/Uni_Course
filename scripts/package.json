@@ -6,7 +6,8 @@
   "scripts": {
     "hello": "tsx ./src/hello.ts",
     "update-school-coords": "tsx ./src/update-school-coords.ts",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "seed-schools": "node --env-file=../lib/db/.env --import tsx ./src/seed-schools.ts"
   },
   "dependencies": {
     "@workspace/db": "workspace:*"

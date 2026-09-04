@@ -70,18 +70,18 @@ export default function SavedPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {savedSchools?.map(school => (
-                <Card key={school.id} className="flex flex-col">
-                  <CardHeader className="pb-3 flex-row items-start justify-between space-y-0">
-                    <div>
-                      <CardTitle className="text-lg leading-tight hover:text-primary transition-colors">
+                <Card key={school.id} className="flex flex-col min-w-0">
+                  <CardHeader className="pb-3 flex-row items-start justify-between gap-2 space-y-0">
+                    <div className="min-w-0 flex-1">
+                      <CardTitle className="text-lg leading-tight hover:text-primary transition-colors line-clamp-2 break-words">
                         <Link href={`/schools/${school.id}`}>{school.name}</Link>
                       </CardTitle>
-                      <div className="flex items-center text-xs text-muted-foreground mt-2">
+                      <div className="flex items-center text-xs text-muted-foreground mt-2 min-w-0">
                         <MapPin className="h-3 w-3 mr-1 shrink-0" />
                         <span className="truncate">{school.address}</span>
                       </div>
                     </div>
-                    <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive shrink-0 ml-2" onClick={() => handleRemoveSchool(school.id)}>
+                    <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive shrink-0" onClick={() => handleRemoveSchool(school.id)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </CardHeader>
@@ -106,15 +106,15 @@ export default function SavedPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {savedPrograms?.map(program => (
-                <Card key={program.id} className="flex flex-col">
-                  <CardHeader className="pb-3 flex-row items-start justify-between space-y-0">
-                    <div>
-                      <CardTitle className="text-lg leading-tight">{program.name}</CardTitle>
-                      <div className="flex items-center text-xs font-medium text-primary mt-2">
+                <Card key={program.id} className="flex flex-col min-w-0">
+                  <CardHeader className="pb-3 flex-row items-start justify-between gap-2 space-y-0">
+                    <div className="min-w-0 flex-1">
+                      <CardTitle className="text-lg leading-tight line-clamp-2 break-words">{program.name}</CardTitle>
+                      <div className="flex items-center text-xs font-medium text-primary mt-2 min-w-0 truncate">
                         <Link href={`/schools/${program.schoolId}`}>{program.schoolName}</Link>
                       </div>
                     </div>
-                    <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive shrink-0 ml-2" onClick={() => handleRemoveProgram(program.id)}>
+                    <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive shrink-0" onClick={() => handleRemoveProgram(program.id)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </CardHeader>
