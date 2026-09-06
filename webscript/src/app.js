@@ -6,11 +6,9 @@ const app = express();
 app.use(express.json());
 
 app.get("/test", async (req, res) => {
-    res.json({
-    h:'working'
-    })
- // const result = await scrapeCourseData();
- // res.json(result);
+   
+ const result = await scrapeCourseData();
+  res.json(result);
 });
 
 
