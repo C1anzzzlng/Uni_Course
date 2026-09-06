@@ -11,8 +11,8 @@
    
 3.  Open terminal for 2 folder(api server & xlore-u )
    ##api-server Terminal Run this command
-       pnpm run build
-        pnpm run start
+            pnpm run build
+            pnpm run start
    ## xlore-u Terminal Run this command
      pnpm run dev
 
