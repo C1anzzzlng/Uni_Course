@@ -15,7 +15,6 @@
      pnpm run dev
                
    ## api-server Terminal Run this command
-     pnpm run dev
 
      pnpm run build
      pnpm run start
