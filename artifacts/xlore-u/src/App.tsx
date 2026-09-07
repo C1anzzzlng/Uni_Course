@@ -3,7 +3,7 @@ import { ClerkProvider, SignIn, SignUp, Show, useClerk } from "@clerk/react";
 import { publishableKeyFromHost } from "@clerk/react/internal";
 import { shadcn } from "@clerk/themes";
 import { useLocation } from "wouter";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 
@@ -38,14 +38,21 @@ if (!clerkPubKey) {
   throw new Error("Missing VITE_CLERK_PUBLISHABLE_KEY in .env file");
 }
 
-const clerkAppearance = {
-  theme: shadcn,
-  cssLayerName: "clerk",
-  options: {
-    logoPlacement: "inside" as const,
-    logoLinkUrl: basePath || "/",
-  },
-  variables: {
+function useClerkAppearance() {
+  const [isDark, setIsDark] = useState(() =>
+    document.documentElement.classList.contains("dark"),
+  );
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const observer = new MutationObserver(() =>
+      setIsDark(root.classList.contains("dark")),
+    );
+    observer.observe(root, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
+
+  const lightVars = {
     colorPrimary: "hsl(217 91% 60%)",
     colorForeground: "hsl(222 84% 5%)",
     colorMutedForeground: "hsl(215 16% 47%)",
@@ -54,17 +61,43 @@ const clerkAppearance = {
     colorInput: "hsl(214 32% 91%)",
     colorInputForeground: "hsl(222 84% 5%)",
     colorNeutral: "hsl(214 32% 91%)",
-    fontFamily: "'Inter', sans-serif",
-    borderRadius: "0.5rem",
-  },
-  elements: {
-    rootBox: "w-full flex justify-center",
-    cardBox: "bg-white rounded-2xl w-[440px] max-w-full overflow-hidden shadow-xl border border-border",
+  };
+
+  const darkVars = {
+    colorPrimary: "hsl(217 91% 60%)",
+    colorForeground: "hsl(210 40% 98%)",
+    colorMutedForeground: "hsl(215 20% 65%)",
+    colorDanger: "hsl(0 84% 60%)",
+    colorBackground: "hsl(217 33% 10%)",
+    colorInput: "hsl(217 33% 17%)",
+    colorInputForeground: "hsl(210 40% 98%)",
+    colorNeutral: "hsl(217 33% 17%)",
+  };
+
+  return {
+    theme: shadcn,
+    cssLayerName: "clerk",
+    layout: {
+      unsafe_disableDevelopmentModeWarnings: true,
+    },
+    options: {
+      logoPlacement: "inside" as const,
+      logoLinkUrl: basePath || "/",
+    },
+    variables: {
+      ...(isDark ? darkVars : lightVars),
+      fontFamily: "'Inter', sans-serif",
+      borderRadius: "0.5rem",
+    },
+    elements: {
+      rootBox: "w-full flex justify-center",
+      cardBox: `${isDark ? "bg-[hsl(217_33%_10%)] border-[hsl(217_33%_17%)]" : "bg-white border-border"} rounded-2xl w-[440px] max-w-full overflow-hidden shadow-xl border`,
     card: "!shadow-none !border-0 !bg-transparent !rounded-none",
     footer: "!shadow-none !border-0 !bg-transparent !rounded-none bg-muted/30",
-    headerTitle: "text-2xl font-bold tracking-tight text-foreground",
+    headerTitle: `${isDark ? "!text-white" : "!text-black"} text-2xl font-bold tracking-tight`,
     headerSubtitle: "text-muted-foreground",
-    socialButtonsBlockButtonText: "text-foreground font-medium",
+    socialButtonsBlockButtonText: `${isDark ? "!text-white" : "!text-black"} font-medium`,
+    socialButtonsBlockButton: `${isDark ? "!text-white !border-white/40" : "!text-black !border-black/30"} border-2 hover:bg-accent transition-colors`,
     formFieldLabel: "text-sm font-medium text-foreground",
     footerActionLink: "text-primary font-semibold hover:underline",
     footerActionText: "text-muted-foreground",
@@ -74,7 +107,6 @@ const clerkAppearance = {
     alertText: "text-destructive-foreground",
     logoBox: "mb-4",
     logoImage: "",
-    socialButtonsBlockButton: "border border-input hover:bg-accent transition-colors",
     formButtonPrimary: "bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm",
     formFieldInput: "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
     footerAction: "py-4 text-center border-t border-border",
@@ -83,8 +115,9 @@ const clerkAppearance = {
     otpCodeFieldInput: "border-input bg-background text-foreground",
     formFieldRow: "space-y-2",
     main: "p-6",
-  },
-};
+    },
+  };
+}
 
 function SignInPage() {
   return (
@@ -154,6 +187,7 @@ function ProtectedRoute({ component: Component }: { component: any }) {
 
 function ClerkProviderWithRoutes() {
   const [, setLocation] = useLocation();
+  const clerkAppearance = useClerkAppearance();
 
   return (
     <ClerkProvider
