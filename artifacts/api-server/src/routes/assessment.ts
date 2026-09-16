@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { getAuth } from "@clerk/express";
 import { db } from "@workspace/db";
 import { assessmentsTable, usersTable, programsTable, schoolsTable, savedSchoolsTable } from "@workspace/db";
 import { eq, inArray, desc } from "drizzle-orm";
@@ -76,7 +77,8 @@ function computeRecommendations(answers: { questionId: string; answer: string }[
 }
 
 async function requireUser(req: any, res: any) {
-  const clerkId = req.auth?.userId;
+  const auth = getAuth(req);
+  const clerkId = auth.userId;
   if (!clerkId) {
     res.status(401).json({ error: "Unauthorized" });
     return null;
@@ -95,7 +97,10 @@ async function requireUser(req: any, res: any) {
 
 router.post("/assessment", async (req, res) => {
   const body = SubmitAssessmentBody.safeParse(req.body);
-  if (!body.success) return res.status(400).json({ error: body.error });
+  if (!body.success) {
+    res.status(400).json({ error: body.error });
+    return;
+  }
 
   const recommendedPrograms = computeRecommendations(body.data.answers);
 
@@ -124,7 +129,8 @@ router.post("/assessment", async (req, res) => {
   // Attempt to save if user is authenticated — auth failure is not fatal
   let assessmentId: number | null = null;
   let completedAt = new Date().toISOString();
-  const clerkId = req.auth?.userId;
+  const auth = getAuth(req);
+  const clerkId = auth.userId;
   if (clerkId) {
     try {
       const found = await db.select().from(usersTable).where(eq(usersTable.clerkId, clerkId)).limit(1);
@@ -164,7 +170,10 @@ router.get("/assessment", async (req, res) => {
     .orderBy(desc(assessmentsTable.createdAt))
     .limit(1);
 
-  if (!assessments.length) return res.status(404).json({ error: "No assessment yet" });
+  if (!assessments.length) {
+    res.status(404).json({ error: "No assessment yet" });
+    return;
+  }
 
   const assessment = assessments[0];
   const recommendedPrograms = assessment.recommendedPrograms || [];

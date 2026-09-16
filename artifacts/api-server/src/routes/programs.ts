@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { getAuth } from "@clerk/express";
 import { db } from "@workspace/db";
 import { programsTable, schoolsTable, savedProgramsTable, usersTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
@@ -17,10 +18,10 @@ router.get("/programs", async (req, res) => {
   const params = ListProgramsQueryParams.safeParse(req.query);
   const query = params.success ? params.data : {};
 
-  const clerkUser = req.auth?.userId ? req.auth : null;
+  const auth = getAuth(req);
   let dbUser = null;
-  if (clerkUser?.userId) {
-    const found = await db.select().from(usersTable).where(eq(usersTable.clerkId, clerkUser.userId)).limit(1);
+  if (auth.userId) {
+    const found = await db.select().from(usersTable).where(eq(usersTable.clerkId, auth.userId)).limit(1);
     dbUser = found[0] || null;
   }
 
@@ -64,7 +65,10 @@ router.get("/programs", async (req, res) => {
 
 router.get("/programs/:id", async (req, res) => {
   const params = GetProgramParams.safeParse({ id: parseInt(req.params.id) });
-  if (!params.success) return res.status(400).json({ error: "Invalid id" });
+  if (!params.success) {
+    res.status(400).json({ error: "Invalid id" });
+    return;
+  }
 
   const program = await db
     .select({ program: programsTable, schoolName: schoolsTable.name })
@@ -73,14 +77,20 @@ router.get("/programs/:id", async (req, res) => {
     .where(eq(programsTable.id, params.data.id))
     .limit(1);
 
-  if (!program.length) return res.status(404).json({ error: "Not found" });
+  if (!program.length) {
+    res.status(404).json({ error: "Not found" });
+    return;
+  }
 
   res.json({ ...program[0].program, schoolName: program[0].schoolName || "", isSaved: false });
 });
 
 router.post("/programs", async (req, res) => {
   const body = CreateProgramBody.safeParse(req.body);
-  if (!body.success) return res.status(400).json({ error: body.error });
+  if (!body.success) {
+    res.status(400).json({ error: body.error });
+    return;
+  }
 
   const school = await db.select().from(schoolsTable).where(eq(schoolsTable.id, body.data.schoolId)).limit(1);
   const [program] = await db.insert(programsTable).values(body.data).returning();
@@ -89,13 +99,22 @@ router.post("/programs", async (req, res) => {
 
 router.patch("/programs/:id", async (req, res) => {
   const params = UpdateProgramParams.safeParse({ id: parseInt(req.params.id) });
-  if (!params.success) return res.status(400).json({ error: "Invalid id" });
+  if (!params.success) {
+    res.status(400).json({ error: "Invalid id" });
+    return;
+  }
 
   const body = UpdateProgramBody.safeParse(req.body);
-  if (!body.success) return res.status(400).json({ error: body.error });
+  if (!body.success) {
+    res.status(400).json({ error: body.error });
+    return;
+  }
 
   const [program] = await db.update(programsTable).set(body.data).where(eq(programsTable.id, params.data.id)).returning();
-  if (!program) return res.status(404).json({ error: "Not found" });
+  if (!program) {
+    res.status(404).json({ error: "Not found" });
+    return;
+  }
 
   const school = await db.select().from(schoolsTable).where(eq(schoolsTable.id, program.schoolId)).limit(1);
   res.json({ ...program, schoolName: school[0]?.name || "", isSaved: false });
@@ -103,7 +122,10 @@ router.patch("/programs/:id", async (req, res) => {
 
 router.delete("/programs/:id", async (req, res) => {
   const params = DeleteProgramParams.safeParse({ id: parseInt(req.params.id) });
-  if (!params.success) return res.status(400).json({ error: "Invalid id" });
+  if (!params.success) {
+    res.status(400).json({ error: "Invalid id" });
+    return;
+  }
 
   await db.delete(programsTable).where(eq(programsTable.id, params.data.id));
   res.status(204).send();

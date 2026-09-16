@@ -1,4 +1,4 @@
-import { db, schoolsTable } from "../../lib/db/src/index";
+import { db, schoolsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 
 const updates: Array<{

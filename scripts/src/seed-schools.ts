@@ -1,4 +1,4 @@
-import { db, schoolsTable, programsTable } from "../../lib/db/src/index";
+import { db, schoolsTable, programsTable } from "@workspace/db";
 
 // Real, verified Taguig-area colleges/universities.
 // Add more entries here any time — the script re-fetches each official

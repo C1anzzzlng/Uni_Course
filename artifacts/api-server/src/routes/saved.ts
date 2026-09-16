@@ -9,7 +9,7 @@ const router = Router();
 
 async function requireUser(req: any, res: any): Promise<{ id: number; clerkId: string } | null> {
   const auth = getAuth(req);
-  const clerkId = auth?.sessionClaims?.userId || auth?.userId;
+  const clerkId = auth?.userId;
   if (!clerkId) {
     res.status(401).json({ error: "Unauthorized" });
     return null;
@@ -44,7 +44,10 @@ router.post("/saved/schools", async (req, res) => {
   if (!user) return;
 
   const body = SaveSchoolBody.safeParse(req.body);
-  if (!body.success) return res.status(400).json({ error: body.error });
+  if (!body.success) {
+    res.status(400).json({ error: body.error });
+    return;
+  }
 
   try {
     await db.insert(savedSchoolsTable).values({ userId: user.id, schoolId: body.data.schoolId });
@@ -59,7 +62,10 @@ router.delete("/saved/schools/:schoolId", async (req, res) => {
   if (!user) return;
 
   const params = UnsaveSchoolParams.safeParse({ schoolId: parseInt(req.params.schoolId) });
-  if (!params.success) return res.status(400).json({ error: "Invalid id" });
+  if (!params.success) {
+    res.status(400).json({ error: "Invalid id" });
+    return;
+  }
 
   await db.delete(savedSchoolsTable).where(
     and(eq(savedSchoolsTable.userId, user.id), eq(savedSchoolsTable.schoolId, params.data.schoolId))
@@ -86,7 +92,10 @@ router.post("/saved/programs", async (req, res) => {
   if (!user) return;
 
   const body = SaveProgramBody.safeParse(req.body);
-  if (!body.success) return res.status(400).json({ error: body.error });
+  if (!body.success) {
+    res.status(400).json({ error: body.error });
+    return;
+  }
 
   try {
     await db.insert(savedProgramsTable).values({ userId: user.id, programId: body.data.programId });
@@ -101,7 +110,10 @@ router.delete("/saved/programs/:programId", async (req, res) => {
   if (!user) return;
 
   const params = UnsaveProgramParams.safeParse({ programId: parseInt(req.params.programId) });
-  if (!params.success) return res.status(400).json({ error: "Invalid id" });
+  if (!params.success) {
+    res.status(400).json({ error: "Invalid id" });
+    return;
+  }
 
   await db.delete(savedProgramsTable).where(
     and(eq(savedProgramsTable.userId, user.id), eq(savedProgramsTable.programId, params.data.programId))

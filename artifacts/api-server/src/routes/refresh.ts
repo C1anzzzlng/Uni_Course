@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { getAuth } from "@clerk/express";
 import { db } from "@workspace/db";
 import { schoolsTable, programsTable, usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
@@ -63,12 +64,19 @@ async function fetchHtml(url: string): Promise<string> {
   return response.text();
 }
 
-router.post("/admin/refresh-schools", async (req: any, res) => {
-  const clerkId = req.auth?.userId;
-  if (!clerkId) return res.status(401).json({ error: "Unauthorized" });
+router.post("/admin/refresh-schools", async (req, res) => {
+  const auth = getAuth(req);
+  const clerkId = auth.userId;
+  if (!clerkId) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
 
   const user = (await db.select().from(usersTable).where(eq(usersTable.clerkId, clerkId)).limit(1))[0];
-  if (!user || user.role !== "admin") return res.status(403).json({ error: "Admin access required" });
+  if (!user || user.role !== "admin") {
+    res.status(403).json({ error: "Admin access required" });
+    return;
+  }
 
   const schools = await db.select().from(schoolsTable);
   const existingPrograms = await db.select().from(programsTable);
