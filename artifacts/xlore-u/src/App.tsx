@@ -21,11 +21,20 @@ import SavedPage from "@/pages/saved";
 import ProfilePage from "@/pages/profile";
 import AdminPage from "@/pages/admin";
 
-const clerkPubKey = publishableKeyFromHost(
-  window.location.hostname,
-  import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
-);
-const clerkProxyUrl = import.meta.env.VITE_CLERK_PROXY_URL;
+const rawClerkKey =
+  import.meta.env.VITE_CLERK_PUBLISHABLE_KEY ||
+  "pk_test_YWRlcXVhdGUtY291Z2FyLTQxMjYuY2xlcmsuYWNjb3VudHMuZGV2JA";
+
+const isReplit =
+  typeof window !== "undefined" &&
+  (window.location.hostname.endsWith(".replit.app") ||
+    window.location.hostname.endsWith(".replit.dev"));
+
+const clerkPubKey = isReplit
+  ? publishableKeyFromHost(window.location.hostname, rawClerkKey)
+  : rawClerkKey;
+
+const clerkProxyUrl = isReplit ? import.meta.env.VITE_CLERK_PROXY_URL : undefined;
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 function stripBase(path: string): string {
@@ -192,7 +201,7 @@ function ClerkProviderWithRoutes() {
   return (
     <ClerkProvider
       publishableKey={clerkPubKey}
-      proxyUrl={clerkProxyUrl}
+      {...(clerkProxyUrl ? { proxyUrl: clerkProxyUrl } : {})}
       appearance={clerkAppearance}
       signInUrl={`${basePath}/sign-in`}
       signUpUrl={`${basePath}/sign-up`}

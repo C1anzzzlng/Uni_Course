@@ -40,12 +40,15 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(
-  clerkMiddleware((req) => ({
-    publishableKey: publishableKeyFromHost(
-      getClerkProxyHost(req) ?? "",
-      process.env.CLERK_PUBLISHABLE_KEY,
-    ),
-  })),
+  clerkMiddleware((req) => {
+    const host = getClerkProxyHost(req) ?? "";
+    const isReplit = host.endsWith(".replit.app") || host.endsWith(".replit.dev");
+    return {
+      publishableKey: isReplit
+        ? publishableKeyFromHost(host, process.env.CLERK_PUBLISHABLE_KEY)
+        : process.env.CLERK_PUBLISHABLE_KEY,
+    };
+  }),
 );
 
 app.use("/api", router);
